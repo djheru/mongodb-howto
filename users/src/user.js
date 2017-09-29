@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
+const PostSchema = require('./post');
 const Schema = mongoose.Schema;
-
 const UserSchema = new Schema({
   name: {
     type: String,
@@ -10,7 +10,8 @@ const UserSchema = new Schema({
       message: 'Name must be at least 3 characters'
     }
   },
-  postCount: Number
+  postCount: Number,
+  posts: [PostSchema]
 });
 
 const User = mongoose.model('user', UserSchema);
