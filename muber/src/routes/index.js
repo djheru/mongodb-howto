@@ -5,4 +5,5 @@ module.exports = (app) => {
   app.post('/api/drivers', driverController.create);
   app.put('/api/drivers/:id', driverController.edit);
   app.delete('/api/drivers/:id', driverController.delete);
+  app.get('/api/drivers', driverController.index);
 };
