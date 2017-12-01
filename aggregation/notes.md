@@ -2,6 +2,8 @@
 
 ### Getting started with the Aggregation Framework
 
+http://docs.mongodb.org
+
 #### Aggregate
 
 `db.myCollection.aggregate(op1, op2, op3)`
@@ -127,20 +129,94 @@ const g5 = {
  */
 ```
 
-#### $unwind
+```javascript
+// Using $addToSet
+const g7 = { $group: { _id: "$qty", skus: { $addToSet: "$sku" } } };
+// Run group with a key quantity, that's qty
+// And the function addToSet to collect distinct skus per quantity
+/* Result
+{
+  result: [
+    {
+      _id: 1, // the quantity of the sku in the order 
+      skus: [ 'sku001', 'sku004', 'sku009' ]
+    },
+    {
+      _id: 3, // 
+      skus: [ 'sku005', 'sku007', 'sku010' ] // distinct skus where quantity = 3
+    }
+  ],
+  ok: 1
+}
+ */
+```
 
+```javascript
+// Using $push
+const g7 = { $group: { _id: "$qty", skus: { $push: "$sku" } } };
+// Run group with a key quantity, that's qty
+// And the function addToSet to collect skus per quantity
+/* Result
+{
+  result: [
+    {
+      _id: 1, // the quantity of the sku in the order 
+      skus: [ 'sku001', 'sku004', 'sku009' ]
+    },
+    {
+      _id: 3, // 
+      // not distinct skus where quantity = 3
+      skus: [ 'sku005', 'sku005', 'sku007', 'sku010' ] 
+    }
+  ],
+  ok: 1
+}
+ */
+```
+
+```javascript
+// Using $first/$last
+const g8 = { $group: { _id: "$sku", sample: { $first: "$item" } } };
+// returns the first order item ({ qty, price }) for each sku
+```
+
+#### $unwind
 - Transforms an array document field into multiple single documents, one for each element in the array
 - e.g
-```angular2html
-{ key1: 'foo', key2: 'bar', key3: ['baz', 'faz']}}
+```javascript
+const u1 = { key1: 'foo', key2: 'bar', key3: ['baz', 'faz']};
 // unwound to 
+/*
 { key1: 'foo', key2: 'bar', key3: 'baz'}}
 { key1: 'foo', key2: 'bar', key3: 'faz'}}
+ */
 ```
+- Only works on array fields
+- Creates a copy of the document with each individual element as the value
 
 #### $project
 - Get a subset of a document by reshaping it
 - Pluck the fields you want, rename field names, etc
+- Includes the `_id` field by default. Do `{ $project: { name: 1, _id: 0 } }`
+
+##### Rename with $project
+```javascript
+// Rename document field "author" to "Written By"
+const p1 = { $project: { 'Written By': '$author' } }
+```
+
+##### $add/$subtract/$multiply/$divide/$mod Computation with $project
+- `const p2 = { $project: { _id: 1, math: [ $multiply: [ '_id', 1000 ] ];`
+  - Multiply `_id` (which is a number incrementing for each doc) times 1000
+- `$divide`, `$subtract` and `$mod` take exactly two arguments in their array param
+
+##### String operations with $project
+- `const p3 = { $project: { cited: { $concat: [ '$name', ' - written by ', '$by] } } };`
+- `const p4 = { $project: {by: 1, startsWith: { $substr: ['$by', 0, 1] } } };`
+  - First arg is the string, second is the start offset, third is the number of characters
+
+##### Parsing dates into strings with $project
+
 
 #### $limit
 - Limit number of documents 
@@ -150,9 +226,18 @@ const g5 = {
 
 #### $sort 
 - Sorts them
+- `const s1 = { $sort: { keyName: 1 } };`
+- To sort ascending use 1, descending use -1
+- Sort can use indexes if it's working with the original documents from the collection
+  - If it's before a `$group`, `$project`, or `$unwind`
+- Usually want to use after `$match` to conserve memory
 
 #### $match 
 - Filters incoming documents 
+- Works very similarly to the query operator
+- Can't use `where` 
+- Can be used multiple times in the pipeline
+- Result is not a cursor
 
 #### $geoNear
 - Match based on a geoloc point and distance
