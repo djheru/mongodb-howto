@@ -216,7 +216,47 @@ const p1 = { $project: { 'Written By': '$author' } }
   - First arg is the string, second is the start offset, third is the number of characters
 
 ##### Parsing dates into strings with $project
+- If a field (e.g. `dateTime`) is a date, you can project parts of the date out 
 
+```javascript
+const p5 = {
+	$project: {
+		dayOfYear: { $dayOfYear: '$dateTime'},
+		dayOfMonth: { $dayOfMonth: '$dateTime'},
+		dayOfWeek: { $dayOfWeek: '$dateTime'},
+		year: { $year: '$dateTime'},
+		month: { $month: '$dateTime'},
+		week: { $week: '$dateTime'},
+		hour: { $hour: '$dateTime'},
+		minute: { $minute: '$dateTime'},
+		second: { $second: '$dateTime'},
+		millisecond: { $millisecond: '$dateTime'},
+		_id: 0,
+		dateTime: 1,
+	}
+}
+```
+
+##### Compound Conditional
+```javascript
+// Calculate Quarter for a date
+const p6 = {
+	$project: {
+              	q: { $cond: [
+              		{ $gt: [{ $month: '$dateTime'}, 9]}, 'Q4',
+              		{ $cond: [
+              			{ $gt: [{ $month: '$dateTime'}, 6] }, 'Q3',
+              			{
+              				$cond: [
+              					{ $gt: [{ $month: '$dateTime'}, 3] }, 'Q2', 'Q1'
+              				]
+              			}
+              		
+              	]
+              }]	 }, dateTime: 1
+              }
+}
+```
 
 #### $limit
 - Limit number of documents 
