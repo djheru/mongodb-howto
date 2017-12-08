@@ -180,6 +180,11 @@ const g8 = { $group: { _id: "$sku", sample: { $first: "$item" } } };
 // returns the first order item ({ qty, price }) for each sku
 ```
 
+```javascript
+// A composite key
+const g9 = { $group: { _id: { q: "$quarter", y: "year" }, total: { $sum: "$salesTotal" } } };
+```
+
 #### $unwind
 - Transforms an array document field into multiple single documents, one for each element in the array
 - e.g
@@ -198,6 +203,13 @@ const u1 = { key1: 'foo', key2: 'bar', key3: ['baz', 'faz']};
 - Get a subset of a document by reshaping it
 - Pluck the fields you want, rename field names, etc
 - Includes the `_id` field by default. Do `{ $project: { name: 1, _id: 0 } }`
+
+##### Supplying default values with $ifNull
+```javascript
+const p7 = {
+	$project: { weight: { $ifNull: [ '$weight', 1 ] } }
+};
+```
 
 ##### Rename with $project
 ```javascript
@@ -258,6 +270,30 @@ const p6 = {
 }
 ```
 
+##### Projecting into a Subdocument
+```javascript
+const p8 = {
+	$project: {
+		title: '$name',
+		ref: { // grab some fields and put them in a subdocument
+			'author': '$by',
+			'published': '$pubDt'
+		}
+	}
+}
+```
+
+##### Adding non-Mongo data to the result
+```javascript
+const p9 = {
+	$project: {
+		format: { // Format does not exist, we're creating it with concat
+			$concat: [ 'some static/constant value' ]
+		}
+	}
+}
+```
+
 #### $limit
 - Limit number of documents 
 
@@ -283,4 +319,21 @@ const p6 = {
 - Match based on a geoloc point and distance
 - Features similar to $project, $match, $limit with geodata
 
+### Map Reduce
+- Good for use cases where aggregation is not suitable
+	- Can use JS
+- `db.collectionName.mapReduce(myMapper, myReducer, options)`
+- Map function operates on one document at a time
+	- Emit results
+- Reduce takes mapped data and operates on it
 
+
+### Rules of Thumb for Performance
+
+- $sort is expensive
+- $unwind is expensive
+- $match first - reduce the number of docs if possible
+- $project - Remove unneeded fields
+- Use an index to sort/match/skip/limit
+	- Indexes are lost after doc transformation
+- $sort early
