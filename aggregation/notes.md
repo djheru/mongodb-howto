@@ -1,10 +1,10 @@
 
 
-### Getting started with the Aggregation Framework
+# Getting started with the Aggregation Framework
 
 http://docs.mongodb.org
 
-#### Aggregate
+## Aggregate
 
 `db.myCollection.aggregate(op1, op2, op3)`
 
@@ -15,7 +15,7 @@ http://docs.mongodb.org
 - Break down tranformation into stages
 - 
 
-#### $group
+### $group
 
 - Group documents based on a common key
 - Collect elements based on a shared characteristic
@@ -185,7 +185,7 @@ const g8 = { $group: { _id: "$sku", sample: { $first: "$item" } } };
 const g9 = { $group: { _id: { q: "$quarter", y: "year" }, total: { $sum: "$salesTotal" } } };
 ```
 
-#### $unwind
+### $unwind
 - Transforms an array document field into multiple single documents, one for each element in the array
 - e.g
 ```javascript
@@ -199,35 +199,35 @@ const u1 = { key1: 'foo', key2: 'bar', key3: ['baz', 'faz']};
 - Only works on array fields
 - Creates a copy of the document with each individual element as the value
 
-#### $project
+### $project
 - Get a subset of a document by reshaping it
 - Pluck the fields you want, rename field names, etc
 - Includes the `_id` field by default. Do `{ $project: { name: 1, _id: 0 } }`
 
-##### Supplying default values with $ifNull
+#### Supplying default values with $ifNull
 ```javascript
 const p7 = {
 	$project: { weight: { $ifNull: [ '$weight', 1 ] } }
 };
 ```
 
-##### Rename with $project
+#### Rename with $project
 ```javascript
 // Rename document field "author" to "Written By"
 const p1 = { $project: { 'Written By': '$author' } }
 ```
 
-##### $add/$subtract/$multiply/$divide/$mod Computation with $project
+#### $add/$subtract/$multiply/$divide/$mod Computation with $project
 - `const p2 = { $project: { _id: 1, math: [ $multiply: [ '_id', 1000 ] ];`
   - Multiply `_id` (which is a number incrementing for each doc) times 1000
 - `$divide`, `$subtract` and `$mod` take exactly two arguments in their array param
 
-##### String operations with $project
+#### String operations with $project
 - `const p3 = { $project: { cited: { $concat: [ '$name', ' - written by ', '$by] } } };`
 - `const p4 = { $project: {by: 1, startsWith: { $substr: ['$by', 0, 1] } } };`
   - First arg is the string, second is the start offset, third is the number of characters
 
-##### Parsing dates into strings with $project
+#### Parsing dates into strings with $project
 - If a field (e.g. `dateTime`) is a date, you can project parts of the date out 
 
 ```javascript
@@ -249,7 +249,7 @@ const p5 = {
 }
 ```
 
-##### Compound Conditional
+#### Compound Conditional
 ```javascript
 // Calculate Quarter for a date
 const p6 = {
@@ -270,7 +270,7 @@ const p6 = {
 }
 ```
 
-##### Projecting into a Subdocument
+#### Projecting into a Subdocument
 ```javascript
 const p8 = {
 	$project: {
@@ -283,7 +283,7 @@ const p8 = {
 }
 ```
 
-##### Adding non-Mongo data to the result
+#### Adding non-Mongo data to the result
 ```javascript
 const p9 = {
 	$project: {
@@ -294,13 +294,13 @@ const p9 = {
 }
 ```
 
-#### $limit
+### $limit
 - Limit number of documents 
 
-#### $skip 
+### $skip 
 - Skip the first x documents
 
-#### $sort 
+### $sort 
 - Sorts them
 - `const s1 = { $sort: { keyName: 1 } };`
 - To sort ascending use 1, descending use -1
@@ -308,24 +308,16 @@ const p9 = {
   - If it's before a `$group`, `$project`, or `$unwind`
 - Usually want to use after `$match` to conserve memory
 
-#### $match 
+### $match 
 - Filters incoming documents 
 - Works very similarly to the query operator
 - Can't use `where` 
 - Can be used multiple times in the pipeline
 - Result is not a cursor
 
-#### $geoNear
+### $geoNear
 - Match based on a geoloc point and distance
 - Features similar to $project, $match, $limit with geodata
-
-### Map Reduce
-- Good for use cases where aggregation is not suitable
-	- Can use JS
-- `db.collectionName.mapReduce(myMapper, myReducer, options)`
-- Map function operates on one document at a time
-	- Emit results
-- Reduce takes mapped data and operates on it
 
 
 ### Rules of Thumb for Performance
@@ -337,3 +329,11 @@ const p9 = {
 - Use an index to sort/match/skip/limit
 	- Indexes are lost after doc transformation
 - $sort early
+
+## Map Reduce
+- Good for use cases where aggregation is not suitable
+	- Can use JS
+- `db.collectionName.mapReduce(myMapper, myReducer, options)`
+- Map function operates on one document at a time
+	- Emit results
+- Reduce takes mapped data and operates on it
